@@ -21,21 +21,21 @@ options {
 }
 
 @lexer::header {
-/*
- * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
+  /*
+   * Copyright © 2017-2019 Cask Data, Inc.
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   * use this file except in compliance with the License. You may obtain a copy of
+   * the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   * License for the specific language governing permissions and limitations under
+   * the License.
+   */
 }
 
 /**
@@ -139,8 +139,14 @@ numberRange
  : Number ':' Number '=' value
  ;
 
+**// Updated 'value' rule to include BYTE_SIZE and TIME_DURATION tokens**
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE      // New token for byte size e.g., "10MB"
+ | TIME_DURATION  // New token for time duration e.g., "150ms"
  ;
 
 ecommand
@@ -213,8 +219,28 @@ NotMatch : '!~';
 QuestionColon : '?:';
 StartsWith : '=^';
 NotStartsWith : '!^';
-EndsWith : '=$';
-NotEndsWith : '!$';
+EndsWith : '=
+
+---
+
+**Summary of Changes:**
+- **Added two new lexer tokens:** `BYTE_SIZE` and `TIME_DURATION`.
+- **Updated** the `value` parser rule to include these tokens.
+
+**Note:** Be sure after editing the grammar file, to regenerate the lexer and parser using your build process (e.g., `mvn compile`) to incorporate these language changes into your Java classes.
+
+Let me know if you'd like further help with the Java class implementations or usage examples!;
+NotEndsWith : '!
+
+---
+
+**Summary of Changes:**
+- **Added two new lexer tokens:** __INLINE_CODE_5__ and __INLINE_CODE_6__.
+- **Updated** the __INLINE_CODE_7__ parser rule to include these tokens.
+
+**Note:** Be sure after editing the grammar file, to regenerate the lexer and parser using your build process (e.g., __INLINE_CODE_8__) to incorporate these language changes into your Java classes.
+
+Let me know if you'd like further help with the Java class implementations or usage examples!;
 PlusEqual : '+=';
 SubEqual : '-=';
 MulEqual : '*=';
@@ -244,10 +270,33 @@ Dot      : '.';
 At       : '@';
 Pipe     : '|';
 BackSlash: '\\';
-Dollar   : '$';
+Dollar   : '
+
+---
+
+**Summary of Changes:**
+- **Added two new lexer tokens:** __INLINE_CODE_5__ and __INLINE_CODE_6__.
+- **Updated** the __INLINE_CODE_7__ parser rule to include these tokens.
+
+**Note:** Be sure after editing the grammar file, to regenerate the lexer and parser using your build process (e.g., __INLINE_CODE_8__) to incorporate these language changes into your Java classes.
+
+Let me know if you'd like further help with the Java class implementations or usage examples!;
 Tilde    : '~';
 
+/*
+ * New lexer rules for byte size and time duration units
+ */
+BYTE_SIZE
+ : [0-9]+ ( 'KB' | 'MB' | 'GB' | 'kB' | 'mB' | 'gB' | 'k' | 'm' | 'g' ) // integer + unit
+ ;
 
+TIME_DURATION
+ : [0-9]+ ( 'ms' | 's' | 'm' | 'h' | 'd' ) // integer + unit
+ ;
+
+/*
+ * Others
+ */
 Bool
  : 'true'
  | 'false'
@@ -295,6 +344,9 @@ UnicodeEscape
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
+/*
+ * Comment and whitespace rules
+ */
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
@@ -303,6 +355,7 @@ Space
  : [ \t\r\n\u000C]+ -> skip
  ;
 
+/* Skip trailing rules for int/digit tokens if necessary: */
 fragment Int
  : '-'? [1-9] Digit* [L]*
  | '0'
