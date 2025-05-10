@@ -48,21 +48,17 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for ValidateStandard and the manifest and schemas in the package.
  */
-public class ValidateStandardTest {
-
-  private static Map<String, Standard> getSpecsInArchive() throws IOException, NoSuchAlgorithmException {
+private static Map<String, Standard> getSpecsInArchive() throws IOException, NoSuchAlgorithmException {
   Map<String, Standard> schemas = new HashMap<>();
   CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
   if (src != null) {
-    // Use Paths.get to handle platform-specific path separators.
-    Path jarPath = Paths.get(src.getLocation().toURI());
-    
-    // Using resolve to append the schemas path in a platform-agnostic way.
-    Path schemasPath = jarPath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
-    
-    // Ensure we are using a relative path to handle different platforms correctly
-    File schemasRoot = schemasPath.toFile();
+    // Convert URI to File first to avoid path issues on Windows
+    Path jarPath = new File(src.getLocation().toURI()).toPath();
 
+    // Append schema path safely
+    Path schemasPath = jarPath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
+
+    File schemasRoot = schemasPath.toFile();
     if (!schemasRoot.isDirectory()) {
       throw new IOException(
         String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
@@ -83,6 +79,7 @@ public class ValidateStandardTest {
 
   return schemas;
 }
+
 
 
   private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
