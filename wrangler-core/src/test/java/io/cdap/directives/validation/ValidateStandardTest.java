@@ -50,12 +50,13 @@ import static org.junit.Assert.assertTrue;
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
+  throws IOException, NoSuchAlgorithmException {
   Map<String, Standard> schemas = new HashMap<>();
   CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
   if (src != null) {
-    // Use File.separator to make the path construction platform-independent
-    File schemasRoot = new File(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH);
+    Path jarPath = Paths.get(src.getLocation().toURI());
+    Path schemasPath = jarPath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
+    File schemasRoot = schemasPath.toFile();
 
     if (!schemasRoot.isDirectory()) {
       throw new IOException(
