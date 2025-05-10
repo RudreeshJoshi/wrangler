@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.MessageDigest;
@@ -49,34 +50,33 @@ import static org.junit.Assert.assertTrue;
  */
 public class ValidateStandardTest {
 
-  private static Map<String, Standard> getSpecsInArchive()
-  throws IOException, NoSuchAlgorithmException {
-  Map<String, Standard> schemas = new HashMap<>();
-  CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
-  if (src != null) {
-    Path jarPath = Paths.get(src.getLocation().toURI());
-    Path schemasPath = jarPath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
-    File schemasRoot = schemasPath.toFile();
+  private static Map<String, Standard> getSpecsInArchive() throws IOException, NoSuchAlgorithmException {
+    Map<String, Standard> schemas = new HashMap<>();
+    CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
+    if (src != null) {
+        // Use Paths.get to handle platform-specific path separators.
+        Path jarPath = Paths.get(src.getLocation().toURI());
+        Path schemasPath = jarPath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
+        File schemasRoot = schemasPath.toFile();
 
-    if (!schemasRoot.isDirectory()) {
-      throw new IOException(
-        String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
+        if (!schemasRoot.isDirectory()) {
+            throw new IOException(
+              String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
+        }
+
+        for (File f : schemasRoot.listFiles()) {
+            if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
+                continue;
+            }
+
+            String hash = calcHash(new FileInputStream(f));
+            schemas.put(
+              FilenameUtils.getBaseName(f.getName()),
+              new Standard(hash, FilenameUtils.getExtension(f.getName())));
+        }
     }
 
-    for (File f : schemasRoot.listFiles()) {
-      if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-        continue;
-      }
-
-      String hash = calcHash(new FileInputStream(f));
-      schemas.put(
-        FilenameUtils.getBaseName(f.getName()),
-        new Standard(hash, FilenameUtils.getExtension(f.getName())));
-    }
-  }
-
-  return schemas;
-
+    return schemas;
   }
 
   private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
